@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjMjU2M2ViIj48cGF0aCBkPSJNMy4xMiAxOC4wNUEzLjk3NiAzLjk3NiAwIDAgMCA3IDIwYzIuMjMgMCA0LTEuNzkgNC00SDl2LTEuOTdBOS45NzkgOS45NzkgMCAwIDAgMjAuOTggMTBIMjJ2LTJjMC00LjQyLTMuNTgtOC04LTgtLjMxIDAtLjYyLjAyLS45Mi4wNkEyLjk5NiAyLjk5NiAwIDAgMCAxMSA1di45N0E5Ljk3OSA5Ljk3OSAwIDAgMCAzLjAyIDdIMnYyYzAgNC4zOCAxLjI3IDguNDUgMy40NiAxMS45QzYuMjMgMjIuOTUgOSAyMy45OSAxMiAyNGMuMzEgMCAuNjItLjAyLjkyLS4wNkEyLjk5NiAyLjk5NiAwIDAgMCAxMyAxOXYtLjk3YzMuNDUgMCA2LjMyLTIuMzYgNy4xNC01LjU3YTguMDA1IDguMDA1IDAgMCAxLTctNC40MmM0LjMyLTEuMzkgNy40NSA0LjE4IDguMTUgOC45NmEyMy4wNDUgMjMuMDQ1IDAgMCAxLTcuOTQgMS4wNGMtNC44NCAwLTkuOTYtMi4wNC05Ljk2LTYuOTlIMyIvPjwvc3ZnPg==" />
 </head>
 <body>
     <div class="main-container">
@@ -16,38 +17,49 @@
         <aside class="sidebar sidebar-mobile-expanded" id="sidebar">
             <div>
                 <div class="sidebar-header">
-                    <span class="sidebar-logo">RSS Feed</span>
+                    <span class="sidebar-logo">
+                        <i class="fas fa-rss"></i>
+                        FeedReader
+                    </span>
                     <button id="toggle-sidebar" class="toggle-btn">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
-                <nav>
-                    <button class="nav-item" id="nav-your-feeds">
-                        <i class="fa-regular fa-rectangle-list"></i> Your Feeds
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Main</div>
+                    <button class="nav-item active" id="nav-your-feeds">
+                        <i class="fa-regular fa-rectangle-list"></i> Today
                     </button>
                     <button class="nav-item" id="nav-saved">
-                        <i class="fa-regular fa-bookmark"></i> Saved
+                        <i class="fa-regular fa-bookmark"></i> Read Later
                     </button>
                     <button class="nav-item" id="nav-search">
                         <i class="fa-solid fa-magnifying-glass"></i> Search
                     </button>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Manage</div>
                     <button class="nav-item" id="nav-create-feed">
-                        <i class="fa-regular fa-square-plus"></i> Create Feed
+                        <i class="fa-regular fa-square-plus"></i> Add Content
                     </button>
-                </nav>
+                </div>
             </div>
-            <div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">Account</div>
                 <button class="nav-item" id="nav-notifications">
                     <i class="fa-regular fa-bell"></i> Notifications
                 </button>
                 <button class="nav-item" id="nav-support">
-                    <i class="fa-regular fa-circle-question"></i> Support
+                    <i class="fa-regular fa-circle-question"></i> Help
                 </button>
                 <button class="nav-item" id="nav-settings">
                     <i class="fa-solid fa-gear"></i> Settings
                 </button>
                 <button class="nav-item" id="nav-account">
-                    <i class="fa-regular fa-user"></i> Account
+                    <i class="fa-regular fa-user"></i> Profile
                 </button>
             </div>
         </aside>
@@ -56,7 +68,7 @@
             <!-- Feeds Panel -->
             <section class="feeds-panel" id="feeds-panel">
                 <div class="feeds-panel-header">
-                    <span class="feeds-panel-title">Feeds</span>
+                    <span class="feeds-panel-title">My Feeds</span>
                     <div>
                         <button id="toggle-feeds-panel" class="toggle-btn">
                             <i class="fa-solid fa-chevron-left"></i>
@@ -64,7 +76,7 @@
                     </div>
                 </div>
                 <div class="feeds-panel-content" id="feeds-panel-list">
-                    <!-- Feeds and Newsfeed will be rendered here -->
+                    <!-- Feeds and Categories will be rendered here -->
                 </div>
             </section>
             
@@ -74,6 +86,42 @@
             </main>
         </div>
     </div>
+    
+    <!-- Templates for dynamic UI elements -->
+    <template id="empty-state-template">
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="far fa-newspaper"></i>
+            </div>
+            <h3 class="empty-state-title">No content found</h3>
+            <p class="empty-state-message">Follow some feeds to see content here, or add new feeds to your collection.</p>
+            <button class="btn btn-primary">
+                <i class="fa-regular fa-square-plus"></i> Add Content
+            </button>
+        </div>
+    </template>
+    
+    <template id="post-card-template">
+        <article class="post-card">
+            <div class="post-card-content">
+                <div class="post-source">Feed Name</div>
+                <div class="post-card-header">
+                    <h3 class="post-card-title">Post Title Goes Here</h3>
+                    <button class="action-btn save-post-btn" data-post-id="123">
+                        <i class="fa-regular fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="post-card-description">Post description preview text goes here...</div>
+                <div class="post-card-footer">
+                    <a href="#" target="_blank" class="post-card-link">
+                        Read More
+                        <span class="icon"><i class="fa-solid fa-arrow-right"></i></span>
+                    </a>
+                    <span class="post-card-date">Apr 15, 2023</span>
+                </div>
+            </div>
+        </article>
+    </template>
     
     <script src="app.js" type="module"></script>
 </body>

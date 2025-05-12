@@ -133,21 +133,35 @@ const UI = (() => {
     // Create notification element
     const notification = document.createElement('div');
     notification.id = 'notification';
-    notification.className = `fixed top-4 right-4 p-4 rounded shadow-lg z-50 transition-opacity duration-300 flex items-center ${
-      type === 'error' ? 'bg-red-500 text-white' : 
-      type === 'success' ? 'bg-green-500 text-white' : 
-      'bg-blue-500 text-white'
-    }`;
+    notification.className = `notification ${type}`;
+    
+    // Set notification title based on type
+    let title = 'Information';
+    let icon = 'fa-solid fa-info-circle';
+    
+    if (type === 'error') {
+      title = 'Error';
+      icon = 'fa-solid fa-circle-exclamation';
+    } else if (type === 'success') {
+      title = 'Success';
+      icon = 'fa-solid fa-circle-check';
+    }
     
     notification.innerHTML = `
-      <span>${message}</span>
-      <button class="ml-4 text-white hover:text-gray-200">
+      <div class="notification-icon">
+        <i class="${icon}"></i>
+      </div>
+      <div class="notification-content">
+        <div class="notification-title">${title}</div>
+        <div class="notification-message">${message}</div>
+      </div>
+      <button class="notification-close">
         <i class="fa-solid fa-times"></i>
       </button>
     `;
     
     // Add close button functionality
-    notification.querySelector('button').addEventListener('click', () => {
+    notification.querySelector('.notification-close').addEventListener('click', () => {
       notification.classList.add('opacity-0');
       setTimeout(() => notification.remove(), 300);
     });
@@ -336,13 +350,13 @@ const UI = (() => {
   const renderFeedsPanel = async () => {
     if (!feedsPanelList) return;
     
-    feedsPanelList.innerHTML = `<div class="flex justify-center p-4"><i class="fa-solid fa-spinner fa-spin"></i></div>`;
+    feedsPanelList.innerHTML = `<div class="flex justify-center p-4"><i class="spinner"></i></div>`;
     
     // Check if user is authenticated
     if (!API.isAuthenticated()) {
       feedsPanelList.innerHTML = `
         <div class="p-4">
-          <div class="text-red-500 mb-4">You need to log in to view feeds</div>
+          <div class="text-red-500 mb-4">Log in to view your feeds</div>
           <button id="feeds-login-btn" class="btn btn-primary w-full">Log In</button>
         </div>
       `;
@@ -369,63 +383,89 @@ const UI = (() => {
     const availableFeeds = FeedManager.getAvailableFeeds();
     const selectedFeedId = FeedManager.getSelectedFeedId();
     
-    // Create "All Feeds" button
+    // Create "All Feeds" button as its own category
     let html = `
-      <button class="w-full flex items-center gap-2 px-3 py-2 rounded-lg ${activeNav === 'nav-your-feeds' ? 'bg-green-100 font-semibold text-green-800' : 'bg-gray-100'} mb-4" id="feeds-newsfeed">
-        <i class="fa-regular fa-rectangle-list"></i> All Feeds 
-        <span class="ml-auto bg-gray-200 text-xs px-2 py-0.5 rounded" id="feeds-count">${followedFeeds.length}</span>
-      </button>
+      <div class="feeds-category">
+        <button class="feed-item ${activeNav === 'nav-your-feeds' ? 'active' : ''}" id="feeds-newsfeed">
+          <span class="feed-item-name">
+            <i class="fa-solid fa-layer-group"></i> All Items
+          </span>
+          <span class="bg-gray-200 text-xs px-2 py-0.5 rounded-full text-gray-700" id="feeds-count">${followedFeeds.length}</span>
+        </button>
+      </div>
     `;
     
     // Followed feeds section
     if (followedFeeds.length > 0) {
-      html += '<div class="mb-2 px-2 text-xs text-gray-500 uppercase font-semibold">Followed Feeds</div>';
+      html += `<div class="feeds-category">
+        <h3 class="feeds-category-title">My Feeds</h3>`;
+      
       html += followedFeeds.map(feed => {
         const isSelected = selectedFeedId === feed.id;
         return `
           <div class="feed-item ${isSelected ? 'active' : ''}">
             <button class="feed-item-name feed-select-btn" data-feed-id="${feed.id}">
-              <i class="fa-solid fa-angle-right"></i> ${feed.name}
+              <i class="fa-solid fa-rss"></i> ${feed.name}
             </button>
-            <button class="text-xs px-2 py-1 rounded bg-red-100 text-red-600 hover:bg-red-200 follow-btn" 
+            <button class="feed-button unfollow-btn" 
               data-feed-id="${feed.id}" 
               data-follow-id="${feed.followId || ''}"
               data-action="unfollow"
             >
-              Unfollow
+              <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
         `;
       }).join('');
+      
+      html += `</div>`;
     }
     
     // Available feeds section
     if (availableFeeds.length > 0) {
-      html += '<div class="mt-4 mb-2 px-2 text-xs text-gray-500 uppercase font-semibold">Available Feeds</div>';
+      html += `<div class="feeds-category">
+        <h3 class="feeds-category-title">Discover</h3>`;
+      
       html += availableFeeds.map(feed => {
         const isSelected = selectedFeedId === feed.id;
         return `
           <div class="feed-item ${isSelected ? 'active' : ''}">
             <button class="feed-item-name feed-select-btn" data-feed-id="${feed.id}">
-              <i class="fa-solid fa-angle-right"></i> ${feed.name}
+              <i class="fa-solid fa-rss"></i> ${feed.name}
             </button>
-            <button class="text-xs px-2 py-1 rounded bg-green-100 text-green-600 hover:bg-green-200 follow-btn" 
+            <button class="feed-button follow-btn" 
               data-feed-id="${feed.id}" 
               data-action="follow"
             >
-              Follow
+              <i class="fa-solid fa-plus"></i>
             </button>
           </div>
         `;
       }).join('');
+      
+      html += `</div>`;
     }
     
     // If no feeds at all
     if (followedFeeds.length === 0 && availableFeeds.length === 0) {
-      html += '<div class="text-gray-400 p-4">No feeds found. Add a feed to get started!</div>';
+      html += `
+        <div class="text-center p-4">
+          <div class="text-gray-400 mb-4">No feeds available</div>
+          <button id="feeds-add-btn" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Add Content
+          </button>
+        </div>`;
     }
     
     feedsPanelList.innerHTML = html;
+    
+    // Add Add Content button handler
+    const addFeedsBtn = document.getElementById('feeds-add-btn');
+    if (addFeedsBtn) {
+      addFeedsBtn.addEventListener('click', () => {
+        setActiveNav('nav-create-feed');
+      });
+    }
     
     // Add click handlers for "All Feeds" button
     const allFeedsBtn = document.getElementById('feeds-newsfeed');
@@ -448,7 +488,7 @@ const UI = (() => {
     });
     
     // Add click handlers for follow/unfollow buttons
-    feedsPanelList.querySelectorAll('.follow-btn').forEach(btn => {
+    feedsPanelList.querySelectorAll('.follow-btn, .unfollow-btn').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.preventDefault();
         e.stopPropagation();  // Prevent triggering the parent feed selection
@@ -459,13 +499,15 @@ const UI = (() => {
         
         // Disable button while in progress
         btn.disabled = true;
-        btn.innerHTML = `<span class="inline-block animate-pulse">Processing...</span>`;
+        btn.innerHTML = `<i class="spinner"></i>`;
         
         try {
           if (action === 'follow') {
             await FeedManager.followFeed(feedId);
+            showNotification('Feed followed successfully!', 'success');
           } else {
             await FeedManager.unfollowFeed(followId);
+            showNotification('Feed unfollowed', 'info');
           }
           
           // Re-render feeds panel and content
@@ -476,18 +518,13 @@ const UI = (() => {
           } else {
             renderNewsfeedPage();
           }
-          
-          showNotification(
-            action === 'follow' ? 'Feed followed successfully!' : 'Feed unfollowed successfully!', 
-            'success'
-          );
         } catch (error) {
           console.error(`Error ${action}ing feed:`, error);
           showNotification(`Failed to ${action} feed`, 'error');
           
           // Re-enable button
           btn.disabled = false;
-          btn.textContent = action === 'follow' ? 'Follow' : 'Unfollow';
+          btn.innerHTML = action === 'follow' ? '<i class="fa-solid fa-plus"></i>' : '<i class="fa-solid fa-xmark"></i>';
         }
       });
     });
@@ -537,15 +574,56 @@ const UI = (() => {
     
     mainContent.innerHTML = `
       <div class="content-header">
-        <h1 class="content-title">Newsfeed</h1>
-        <div class="text-sm text-gray-500 hidden md:block">
+        <h1 class="content-title">Today</h1>
+        <div class="header-actions">
+          <div class="reading-mode-toggle">
+            <button class="reading-mode-btn active" id="view-mode-cards">
+              <i class="fa-solid fa-grip"></i>
+            </button>
+            <button class="reading-mode-btn" id="view-mode-list">
+              <i class="fa-solid fa-list"></i>
+            </button>
+          </div>
+          <button class="toggle-btn" id="refresh-feed" title="Refresh feeds">
+            <i class="fa-solid fa-rotate"></i>
+          </button>
           ${feedsPanelExpanded ? 
-            '<span><i class="fa-solid fa-eye-slash mr-1"></i>Hide feeds panel to see more posts</span>' : 
-            '<span><i class="fa-solid fa-eye mr-1"></i>Show feeds panel</span>'}
+            `<button class="toggle-btn" id="toggle-feeds" title="Hide feeds panel">
+              <i class="fa-solid fa-angles-left"></i>
+            </button>` : 
+            `<button class="toggle-btn" id="toggle-feeds" title="Show feeds panel">
+              <i class="fa-solid fa-angles-right"></i>
+            </button>`
+          }
         </div>
       </div>
       <div id="posts-grid" class="posts-grid ${columnsClass} ${!feedsPanelExpanded ? 'expanded' : ''}"></div>
     `;
+    
+    // Add event listeners for the action buttons
+    document.getElementById('refresh-feed')?.addEventListener('click', () => {
+      loadPosts(); // Reload posts
+    });
+    
+    document.getElementById('toggle-feeds')?.addEventListener('click', toggleFeedsPanel);
+    
+    // Add view mode toggle functionality
+    const viewCards = document.getElementById('view-mode-cards');
+    const viewList = document.getElementById('view-mode-list');
+    
+    if (viewCards && viewList) {
+      viewCards.addEventListener('click', () => {
+        viewCards.classList.add('active');
+        viewList.classList.remove('active');
+        document.getElementById('posts-grid')?.classList.remove('list-view');
+      });
+      
+      viewList.addEventListener('click', () => {
+        viewList.classList.add('active');
+        viewCards.classList.remove('active');
+        document.getElementById('posts-grid')?.classList.add('list-view');
+      });
+    }
     
     loadPosts();
   };
@@ -650,12 +728,20 @@ const UI = (() => {
     if (!postsGrid) return;
     
     if (!posts || posts.length === 0) {
-      postsGrid.innerHTML = `
-        <div class="col-span-full text-center p-8">
-          <div class="text-gray-400 mb-4">No posts found</div>
-          <p class="text-gray-500">Try following some feeds to see posts!</p>
-        </div>
-      `;
+      // Use the empty state template
+      const template = document.getElementById('empty-state-template');
+      const clone = template.content.cloneNode(true);
+      
+      // Set up the "Add Content" button
+      const addButton = clone.querySelector('.btn-primary');
+      if (addButton) {
+        addButton.addEventListener('click', () => {
+          setActiveNav('nav-create-feed');
+        });
+      }
+      
+      postsGrid.innerHTML = '';
+      postsGrid.appendChild(clone);
       return;
     }
     
@@ -664,63 +750,77 @@ const UI = (() => {
       return new Date(b.published_at) - new Date(a.published_at);
     });
     
-    postsGrid.innerHTML = sortedPosts.map(post => {
-      // Format date for display
+    // Get saved posts from localStorage
+    const savedPosts = JSON.parse(localStorage.getItem('savedPosts') || '[]');
+    
+    // Clear the grid
+    postsGrid.innerHTML = '';
+    
+    // Use the template to create each post card
+    sortedPosts.forEach(post => {
+      // Get the template and clone it
+      const template = document.getElementById('post-card-template');
+      const postCard = template.content.cloneNode(true);
+      
+      // Find the feed name
+      let feedName = "Unknown Source";
+      const feed = FeedManager.getFeedById(post.feed_id);
+      if (feed) {
+        feedName = feed.name;
+      }
+      
+      // Update template content
+      postCard.querySelector('.post-source').textContent = feedName;
+      postCard.querySelector('.post-card-title').textContent = post.title || 'No Title';
+      postCard.querySelector('.post-card-description').innerHTML = post.description || 'No description available.';
+      
+      // Format date
       const publishDate = new Date(post.published_at).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric'
       });
+      postCard.querySelector('.post-card-date').textContent = publishDate;
       
-      return `
-        <div class="post-card">
-          <div class="post-card-content">
-            <div class="post-card-header">
-              <h3 class="post-card-title">${post.title || 'No Title'}</h3>
-              <button class="text-gray-400 hover:text-green-600 save-post-btn ml-2" data-post-id="${post.id}">
-                <i class="fa-regular fa-bookmark"></i>
-              </button>
-            </div>
-            
-            <div class="post-card-description">${post.description || 'No description available.'}</div>
-            
-            <div class="post-card-footer">
-              <a href="${post.url}" target="_blank" class="post-card-link">
-                Read More
-                <span class="icon"><i class="fa-solid fa-arrow-right"></i></span>
-              </a>
-              <span class="post-card-date">${publishDate}</span>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
-    
-    // Add event listeners for save buttons
-    postsGrid.querySelectorAll('.save-post-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
+      // Set the read more link
+      const linkElement = postCard.querySelector('.post-card-link');
+      linkElement.href = post.url;
+      
+      // Set up the save button
+      const saveBtn = postCard.querySelector('.save-post-btn');
+      saveBtn.setAttribute('data-post-id', post.id);
+      
+      // Check if this post is saved
+      if (savedPosts.includes(post.id)) {
+        saveBtn.classList.add('saved');
+        saveBtn.innerHTML = '<i class="fa-solid fa-bookmark"></i>';
+      }
+      
+      // Add event listener to save button
+      saveBtn.addEventListener('click', function() {
         const postId = this.getAttribute('data-post-id');
-        // Toggle saved state visually
-        this.classList.toggle('text-green-600');
-        this.classList.toggle('text-gray-400');
-        this.innerHTML = this.classList.contains('text-green-600') ? 
-          '<i class="fa-solid fa-bookmark"></i>' : 
-          '<i class="fa-regular fa-bookmark"></i>';
-        
-        // Store in localStorage
         const savedPosts = JSON.parse(localStorage.getItem('savedPosts') || '[]');
         const postIndex = savedPosts.indexOf(postId);
         
         if (postIndex === -1) {
+          // Save the post
           savedPosts.push(postId);
-          showNotification('Post saved!', 'success');
+          this.classList.add('saved');
+          this.innerHTML = '<i class="fa-solid fa-bookmark"></i>';
+          showNotification('Post saved to Read Later', 'success');
         } else {
+          // Unsave the post
           savedPosts.splice(postIndex, 1);
-          showNotification('Post unsaved', 'info');
+          this.classList.remove('saved');
+          this.innerHTML = '<i class="fa-regular fa-bookmark"></i>';
+          showNotification('Post removed from Read Later', 'info');
         }
         
         localStorage.setItem('savedPosts', JSON.stringify(savedPosts));
       });
+      
+      // Add the card to the grid
+      postsGrid.appendChild(postCard);
     });
   };
   
@@ -940,17 +1040,39 @@ const UI = (() => {
       <div class="content-header">
         <h1 class="content-title">Settings</h1>
       </div>
-      <div class="bg-white p-6 rounded-lg shadow-sm">
+      <div class="form-container">
+        <h2 class="text-xl font-semibold mb-4">Theme Preferences</h2>
         <div class="form-group">
-          <label class="form-label">Theme</label>
-          <div class="flex gap-3">
-            <button id="theme-light" class="btn ${!document.body.classList.contains('dark-mode') ? 'btn-primary' : 'btn-secondary'}">Light</button>
-            <button id="theme-dark" class="btn ${document.body.classList.contains('dark-mode') ? 'btn-primary' : 'btn-secondary'}">Dark</button>
+          <label class="form-label mb-3">Color Theme</label>
+          <div class="theme-toggle">
+            <button id="theme-light" class="theme-btn ${!document.body.classList.contains('dark-mode') ? 'active' : ''}">
+              <i class="fa-regular fa-sun mr-2"></i> Light
+            </button>
+            <button id="theme-dark" class="theme-btn ${document.body.classList.contains('dark-mode') ? 'active' : ''}">
+              <i class="fa-regular fa-moon mr-2"></i> Dark
+            </button>
+          </div>
+        </div>
+        
+        <h2 class="text-xl font-semibold mb-4 mt-8">Reading Preferences</h2>
+        <div class="form-group">
+          <label class="form-label mb-3">Default View</label>
+          <div class="reading-mode-toggle">
+            <button id="view-cards" class="reading-mode-btn active">
+              <i class="fa-solid fa-grip"></i> Cards
+            </button>
+            <button id="view-list" class="reading-mode-btn">
+              <i class="fa-solid fa-list"></i> List
+            </button>
+            <button id="view-magazine" class="reading-mode-btn">
+              <i class="fa-regular fa-newspaper"></i> Magazine
+            </button>
           </div>
         </div>
       </div>
     `;
     
+    // Theme toggling
     document.getElementById('theme-light')?.addEventListener('click', () => {
       document.body.classList.remove('dark-mode');
       localStorage.setItem('theme', 'light');
@@ -961,6 +1083,17 @@ const UI = (() => {
       document.body.classList.add('dark-mode');
       localStorage.setItem('theme', 'dark');
       renderSettingsPage(); // Re-render to update button states
+    });
+    
+    // Reading mode buttons (just UI for now, functionality can be added later)
+    const viewButtons = document.querySelectorAll('.reading-mode-btn');
+    viewButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Remove active class from all buttons
+        viewButtons.forEach(b => b.classList.remove('active'));
+        // Add active class to clicked button
+        btn.classList.add('active');
+      });
     });
   };
   
