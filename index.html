@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RSS Feed Aggregator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <style>
+      .feeds-panel-collapsed {
+        width: 0 !important;
+        min-width: 0 !important;
+        overflow: hidden;
+        transition: all 0.3s ease;
+      }
+      .feeds-panel-expanded {
+        width: 18rem !important;
+        min-width: 18rem !important;
+        transition: all 0.3s ease;
+      }
+      @media (max-width: 768px) {
+        .sidebar-mobile-collapsed {
+          width: 0;
+          overflow: hidden;
+          transform: translateX(-100%);
+          transition: transform 0.3s ease;
+        }
+        .sidebar-mobile-expanded {
+          width: 16rem;
+          transform: translateX(0);
+          transition: transform 0.3s ease;
+        }
+      }
+      #sidebar {
+        z-index: 40;
+      }
+      #feeds-panel {
+        z-index: 30;
+      }
+      #mobile-menu-btn {
+        z-index: 35;
+      }
+      #show-feeds-btn {
+        z-index: 31;
+      }
+      /* Fix layout spacing */
+      .main-container {
+        display: flex;
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+      }
+      .content-area {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100">
+    <div class="main-container">
+      <!-- Sidebar -->
+      <aside
+        class="h-full bg-gradient-to-b from-green-400 to-green-700 text-white flex flex-col justify-between py-8 px-4 fixed md:relative sidebar-mobile-expanded md:w-64"
+        id="sidebar"
+      >
+        <div>
+          <div class="mb-10 flex items-center justify-between">
+            <span class="text-2xl font-bold">Feeds</span>
+            <button id="toggle-sidebar" class="text-white md:hidden">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <nav class="space-y-2">
+            <button
+              class="w-full flex items-center gap-3 py-2 px-3 rounded-lg bg-white/10 hover:bg-white/20 font-medium text-left"
+              id="nav-your-feeds"
+            >
+              <i class="fa-regular fa-rectangle-list"></i> Your Feeds
+            </button>
+            <button
+              class="w-full flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-white/10 font-medium text-left"
+              id="nav-saved"
+            >
+              <i class="fa-regular fa-bookmark"></i> Saved
+            </button>
+            <button
+              class="w-full flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-white/10 font-medium text-left"
+              id="nav-search"
+            >
+              <i class="fa-solid fa-magnifying-glass"></i> Search
+            </button>
+            <button
+              class="w-full flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-white/10 font-medium text-left"
+              id="nav-create-feed"
+            >
+              <i class="fa-regular fa-square-plus"></i> Create Feed
+            </button>
+          </nav>
+        </div>
+        <div class="space-y-2">
+          <button
+            class="w-full flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-white/10 font-medium text-left"
+            id="nav-notifications"
+          >
+            <i class="fa-regular fa-bell"></i> Notifications
+          </button>
+          <button
+            class="w-full flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-white/10 font-medium text-left"
+            id="nav-support"
+          >
+            <i class="fa-regular fa-circle-question"></i> Support
+          </button>
+          <button
+            class="w-full flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-white/10 font-medium text-left"
+            id="nav-settings"
+          >
+            <i class="fa-solid fa-gear"></i> Settings
+          </button>
+          <button
+            class="w-full flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-white/10 font-medium text-left"
+            id="nav-account"
+          >
+            <i class="fa-regular fa-user"></i> Account
+          </button>
+        </div>
+      </aside>
+
+      <div class="content-area">
+        <!-- Feeds Panel -->
+        <section
+          class="h-full w-72 bg-white border-r flex-shrink-0 flex flex-col"
+          id="feeds-panel"
+        >
+          <div class="flex items-center justify-between px-6 py-4 border-b">
+            <span class="font-semibold text-lg">Feeds</span>
+            <div class="flex gap-2 text-gray-500">
+              <button id="toggle-feeds-panel" class="cursor-pointer">
+                <i class="fa-solid fa-chevron-left"></i>
+              </button>
+            </div>
+          </div>
+          <div class="flex-1 overflow-y-auto px-2 py-4" id="feeds-panel-list">
+            <!-- Feeds and Newsfeed will be rendered here -->
+          </div>
+        </section>
+
+        <!-- Main Content Area -->
+        <main
+          class="flex-1 bg-gray-100 overflow-y-auto p-4 md:p-8"
+          id="main-content"
+        >
+          <!-- Dynamic content will be rendered here -->
+        </main>
+      </div>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>
